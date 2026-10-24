@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Программы и игры — Вячеслав Долар</title>
+<meta name="description" content="Автоматический каталог сайтов приложений и игр разработчика Вячеслава Долара.">
+<style>
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:#141a1e;color:#e8eef0;
+       max-width:760px;margin:0 auto;padding:32px 20px 40px;line-height:1.65}
+  h1{font-size:24px;margin:0 0 6px}
+  .sub{color:#8fa3ab;font-size:14px;margin-bottom:4px}
+  .status{color:#8fa3ab;font-size:12.5px;margin-bottom:18px}
+  .status b{color:#f5a04c;font-weight:600}
+  button{background:#263238;color:#e8eef0;border:1px solid #3a4a52;border-radius:10px;
+         padding:6px 14px;font-size:13px;cursor:pointer;margin-left:8px}
+  button:hover{background:#2e3d45}
+  ul{list-style:none;padding:0;margin:0}
+  li{background:#1b2328;border:1px solid #26323833;border-radius:14px;
+     padding:13px 16px;margin-bottom:10px}
+  li a{color:#f5a04c;text-decoration:none;font-weight:600;font-size:15.5px}
+  li a:hover{text-decoration:underline}
+  li .d{color:#8fa3ab;font-size:13px;margin-top:2px}
+  li .u{color:#5f7078;font-size:11.5px;margin-top:3px;word-break:break-all}
+  .err{color:#ff9b8a;font-size:13px}
+</style>
+</head>
+<body>
+
+<h1>Программы и игры</h1>
+<div class="sub">Вячеслав Долар · сайты всех приложений и игр</div>
+<div class="status" id="status">Загрузка списка с GitHub…</div>
+
+<ul id="list">
+  <li><a href="https://takomak2012-cyber.github.io/AlkoCalk-site/">AlkoCalk</a><div class="d">Калькулятор разбавления спирта водой</div></li>
+  <li><a href="https://takomak2012-cyber.github.io/ShahMatI-site/">ШахМатИя</a><div class="d">Шахматный тренажёр с ИИ</div></li>
+  <li><a href="https://takomak2012-cyber.github.io/Toma/">Toma</a><div class="d">Виртуальный питомец на рабочем столе</div></li>
+  <li><a href="https://takomak2012-cyber.github.io/SchoolJokes/">Школьные анекдоты</a><div class="d">2000 добрых шуток для детей 8–12 лет</div></li>
+  <li><a href="https://takomak2012-cyber.github.io/Parikmaher/">Парикмахер</a><div class="d">Записи клиентов и график работы</div></li>
+  <li><a href="https://takomak2012-cyber.github.io/GrafikSmen/">График смен</a><div class="d">Расписание смен, календарь и погода</div></li>
+  <li><a href="https://takomak2012-cyber.github.io/bunch/">Bunch</a><div class="d">70+ смешных звуков для розыгрышей</div></li>
+</ul>
+
+<script>
+(function () {
+  var USER = "takomak2012-cyber";
+  // Человеческие названия и описания для известных репозиториев.
+  var KNOWN = {
+    "AlkoCalk-site":        ["AlkoCalk", "Калькулятор разбавления спирта водой"],
+    "ShahMatI-site":        ["ШахМатИя", "Шахматный тренажёр с искусственным интеллектом"],
+    "Toma":                 ["Toma", "Виртуальный питомец на рабочем столе"],
+    "SchoolJokes":          ["Школьные анекдоты", "2000 добрых шуток для детей 8–12 лет"],
+    "Parikmaher":           ["Парикмахер", "Записи клиентов, график работы и цены"],
+    "GrafikSmen":           ["График смен", "Расписание смен, календарь, будильник и погода"],
+    "bunch":                ["Bunch", "70+ смешных звуков для розыгрышей"]
+  };
+
+  function siteUrl(repo) {
+    if (repo.name.toLowerCase() === USER.toLowerCase() + ".github.io") return "https://" + USER.toLowerCase() + ".github.io/";
+    return "https://" + USER.toLowerCase() + ".github.io/" + repo.name + "/";
+  }
+
+  function render(sites, fromCache) {
+    var list = document.getElementById("list");
+    list.innerHTML = "";
+    sites.forEach(function (s) {
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = s.url;
+      a.textContent = s.title;
+      li.appendChild(a);
+      if (s.desc) {
+        var d = document.createElement("div");
+        d.className = "d";
+        d.textContent = s.desc;
+        li.appendChild(d);
+      }
+      var u = document.createElement("div");
+      u.className = "u";
+      u.textContent = s.url;
+      li.appendChild(u);
+      list.appendChild(li);
+    });
+    var now = new Date();
+    var st = document.getElementById("status");
+    st.innerHTML = "Сайтов: <b>" + sites.length + "</b> · обновлено: <b>" +
+      now.toLocaleString("ru-RU") + "</b>" + (fromCache ? " (из кеша браузера)" : "") +
+      ' <button onclick="location.reload(true)">Обновить</button>';
+  }
+
+  function load() {
+    var url = "https://api.github.com/users/" + USER + "/repos?per_page=100&type=public";
+    fetch(url, { headers: { "Accept": "application/vnd.github+json" } })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (repos) {
+        var sites = repos
+          .filter(function (r) { return r.has_pages; })
+          .map(function (r) {
+            var known = KNOWN[r.name];
+            return {
+              title: known ? known[0] : r.name,
+              desc: known ? known[1] : (r.description || ""),
+              url: siteUrl(r)
+            };
+          })
+          .sort(function (a, b) { return a.title.localeCompare(b.title, "ru"); });
+        try {
+          localStorage.setItem("appsCatalog", JSON.stringify({ t: Date.now(), sites: sites }));
+        } catch (e) {}
+        render(sites, false);
+      })
+      .catch(function (err) {
+        // Нет интернета или лимит запросов GitHub API — показываем последний сохранённый список.
+        var cached = null;
+        try { cached = JSON.parse(localStorage.getItem("appsCatalog")); } catch (e) {}
+        if (cached && cached.sites) {
+          render(cached.sites, true);
+        } else {
+          document.getElementById("status").innerHTML =
+            '<span class="err">Не удалось обновить список (' + err.message +
+            ') — показан встроенный список.</span>';
+        }
+      });
+  }
+
+  load();
+})();
+</script>
+
+</body>
+</html>
